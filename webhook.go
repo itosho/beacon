@@ -47,9 +47,9 @@ func postMessage(c echo.Context) error {
 		if event.Type == linebot.EventTypeBeacon {
 			resMessage := linebot.NewTextMessage("Beaconイベントキャッチ！")
 			switch event.Beacon.Type {
-			case "enter":
+			case linebot.BeaconEventTypeEnter:
 				resMessage = linebot.NewTextMessage("来た！")
-			case "leave":
+			case linebot.BeaconEventTypeLeave:
 				resMessage = linebot.NewTextMessage("去った！")
 			}
 			if _, err = bot.ReplyMessage(event.ReplyToken, resMessage).Do(); err != nil {
