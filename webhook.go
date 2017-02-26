@@ -43,6 +43,13 @@ func postMessage(c echo.Context) error {
 	}
 
 	for _, event := range received {
+		if event.Type == linebot.EventTypeBeacon {
+			resMessage := linebot.NewTextMessage("beacon!")
+			if _, err = bot.ReplyMessage(event.ReplyToken, resMessage).Do(); err != nil {
+				log.Errorf(cx, "send error: %v", err)
+			}
+		}
+
 		if event.Type == linebot.EventTypeMessage {
 			switch message := event.Message.(type) {
 			case *linebot.TextMessage:
