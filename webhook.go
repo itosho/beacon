@@ -2,14 +2,15 @@ package main
 
 import (
 	"net/http"
+	"os"
+	"time"
+
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/line/line-bot-sdk-go/linebot"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/urlfetch"
-	"os"
-	"time"
 )
 
 func init() {
