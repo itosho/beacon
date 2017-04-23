@@ -54,10 +54,10 @@ func postMessage(c echo.Context) error {
 			switch event.Beacon.Type {
 			case linebot.BeaconEventTypeEnter:
 				resMessage = linebot.NewTextMessage("来た！")
-				sendToSlack(slackPath, "出社したよ〜！")
+				sendToSlack(c, slackPath, "出社したよ〜！")
 			case linebot.BeaconEventTypeLeave:
 				resMessage = linebot.NewTextMessage("去った！")
-				sendToSlack(slackPath, "退社したよ〜！")
+				sendToSlack(c, slackPath, "退社したよ〜！")
 			}
 			if _, err = bot.ReplyMessage(event.ReplyToken, resMessage).Do(); err != nil {
 				log.Errorf(cx, "send error: %v", err)
@@ -78,7 +78,7 @@ func postMessage(c echo.Context) error {
 	return c.JSON(http.StatusOK, "success")
 }
 
-func sendToSlack(path string, text string) (string, error) {
+func sendToSlack(c echo.Context, path string, text string) (string, error) {
 	slackURL := "https://hooks.slack.com"
 	slackPath := path
 	u, _ := url.ParseRequestURI(slackURL)
@@ -89,7 +89,8 @@ func sendToSlack(path string, text string) (string, error) {
 	data := url.Values{}
 	data.Set("payload", "{\"text\": \""+text+"\", \"link_names\": 1}")
 
-	client := &http.Client{}
+	cx := appengine.NewContext(c.Request())
+	client := urlfetch.Client(cx)
 	req, _ := http.NewRequest("POST", urlStr, strings.NewReader(data.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
