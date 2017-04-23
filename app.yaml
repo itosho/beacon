@@ -15,3 +15,5 @@ handlers:
 env_variables:
   CHANNEL_SECRET: ''
   CHANNEL_ACCESS_TOKEN: ''
+  SLACK_INCOMING_WEBHOOK_PATH: ''
+  

@@ -31,6 +31,7 @@ func getCurrentTime(c echo.Context) error {
 func postMessage(c echo.Context) error {
 	secret := os.Getenv("CHANNEL_SECRET")
 	accessToken := os.Getenv("CHANNEL_ACCESS_TOKEN")
+	slackPath := os.Getenv("SLACK_INCOMING_WEBHOOK_PATH")
 
 	cx := appengine.NewContext(c.Request())
 	client := urlfetch.Client(cx)
@@ -53,8 +54,10 @@ func postMessage(c echo.Context) error {
 			switch event.Beacon.Type {
 			case linebot.BeaconEventTypeEnter:
 				resMessage = linebot.NewTextMessage("来た！")
+				sendToSlack(slackPath, "出社したよ〜！")
 			case linebot.BeaconEventTypeLeave:
 				resMessage = linebot.NewTextMessage("去った！")
+				sendToSlack(slackPath, "退社したよ〜！")
 			}
 			if _, err = bot.ReplyMessage(event.ReplyToken, resMessage).Do(); err != nil {
 				log.Errorf(cx, "send error: %v", err)
