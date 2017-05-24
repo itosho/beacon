@@ -13,9 +13,15 @@ import (
 	"github.com/labstack/echo/middleware"
 	"github.com/line/line-bot-sdk-go/linebot"
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/urlfetch"
 )
+
+type Entity struct {
+	Type int
+	Date time.Time
+}
 
 func init() {
 	g := e.Group("/webhook")
@@ -54,6 +60,16 @@ func postMessage(c echo.Context) error {
 			switch event.Beacon.Type {
 			case linebot.BeaconEventTypeEnter:
 				resMessage = linebot.NewTextMessage("来た！")
+
+				k := datastore.NewIncompleteKey(cx, "Entity", nil)
+				e := new(Entity)
+				e.Type = 1
+				e.Date = time.Now()
+
+				if _, err := datastore.Put(cx, k, e); err != nil {
+					return c.JSON(http.StatusInternalServerError, "register error")
+				}
+
 				sendToSlack(c, slackPath, "出社したよ〜！")
 			case linebot.BeaconEventTypeLeave:
 				resMessage = linebot.NewTextMessage("去った！")
