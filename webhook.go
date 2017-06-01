@@ -16,9 +16,10 @@ import (
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/urlfetch"
+	"strconv"
 )
 
-type Entity struct {
+type AttendanceEntity struct {
 	Type int
 	Date time.Time
 }
@@ -61,8 +62,8 @@ func postMessage(c echo.Context) error {
 			case linebot.BeaconEventTypeEnter:
 				resMessage = linebot.NewTextMessage("来た！")
 
-				k := datastore.NewIncompleteKey(cx, "Entity", nil)
-				e := new(Entity)
+				k := datastore.NewIncompleteKey(cx, "Attendance", nil)
+				e := new(AttendanceEntity)
 				e.Type = 1
 				e.Date = time.Now()
 
@@ -70,9 +71,25 @@ func postMessage(c echo.Context) error {
 					return c.JSON(http.StatusInternalServerError, "register error")
 				}
 
-				sendToSlack(c, slackPath, "出社したよ〜！")
+				ct := time.Now()
+				if ct.Hour() + 9 > 10 {
+					sendToSlack(c, slackPath, "もう" + strconv.Itoa(ct.Hour() + 9) + "時だよ！来るの遅い！")
+				} else {
+					sendToSlack(c, slackPath, "おはよう！今日も１日頑張ろう！")
+				}
+
 			case linebot.BeaconEventTypeLeave:
 				resMessage = linebot.NewTextMessage("去った！")
+
+				k := datastore.NewIncompleteKey(cx, "Attendance", nil)
+				e := new(AttendanceEntity)
+				e.Type = 2
+				e.Date = time.Now()
+
+				if _, err := datastore.Put(cx, k, e); err != nil {
+					return c.JSON(http.StatusInternalServerError, "register error")
+				}
+
 				sendToSlack(c, slackPath, "退社したよ〜！")
 			}
 			if _, err = bot.ReplyMessage(event.ReplyToken, resMessage).Do(); err != nil {
