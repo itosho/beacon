@@ -55,6 +55,10 @@ func postMessage(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
+	utcNow := time.Now().UTC()
+	jst := time.FixedZone("Asia/Tokyo", 60*60*9)
+	now := utcNow.In(jst)
+
 	for _, event := range received {
 		if event.Type == linebot.EventTypeBeacon {
 			resMessage := linebot.NewTextMessage("Beaconイベントキャッチ！")
@@ -65,15 +69,21 @@ func postMessage(c echo.Context) error {
 				k := datastore.NewIncompleteKey(cx, "Attendance", nil)
 				e := new(AttendanceEntity)
 				e.Type = 1
-				e.Date = time.Now()
+				e.Date = now
 
 				if _, err := datastore.Put(cx, k, e); err != nil {
 					return c.JSON(http.StatusInternalServerError, "register error")
 				}
 
-				ct := time.Now()
-				if ct.Hour() + 9 > 10 {
-					sendToSlack(c, slackPath, "もう" + strconv.Itoa(ct.Hour() + 9) + "時だよ！来るの遅い！")
+				r := datastore.NewQuery("Attendance").
+					Filter("Date >=", now.Add(-59*time.Minute)).
+					Filter("Date <=", now)
+				count, _ := r.Count(cx)
+
+				if count > 0 {
+					sendToSlack(c, slackPath, "仕事中なのにここ1時間で" + strconv.Itoa(count) + "回もLINEを起動しているよ！")
+				} else if now.Hour() > 10 {
+					sendToSlack(c, slackPath, "もう" + strconv.Itoa(now.Hour()) + "時だよ！来るの遅い！")
 				} else {
 					sendToSlack(c, slackPath, "おはよう！今日も１日頑張ろう！")
 				}
