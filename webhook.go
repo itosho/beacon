@@ -80,11 +80,11 @@ func postMessage(c echo.Context) error {
 					Filter("Date <=", now)
 				count, _ := r.Count(cx)
 
-				if count > 0 {
-					sendToSlack(c, slackPath, "仕事中なのにここ1時間で" + strconv.Itoa(count) + "回もLINEを起動しているよ！")
-				} else if now.Hour() > 10 {
-					sendToSlack(c, slackPath, "もう" + strconv.Itoa(now.Hour()) + "時だよ！来るの遅い！")
-				} else {
+				if count > 4 {
+					sendToSlack(c, slackPath, "仕事中なのにここ1時間で"+strconv.Itoa(count)+"回もLINEを起動しているよ！")
+				} else if now.Hour() > 10 && count == 1 {
+					sendToSlack(c, slackPath, "もう"+strconv.Itoa(now.Hour())+"時だよ！来るの遅い！")
+				} else if now.Hour() <= 10 && count == 1 {
 					sendToSlack(c, slackPath, "おはよう！今日も１日頑張ろう！")
 				}
 
