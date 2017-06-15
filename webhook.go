@@ -94,13 +94,19 @@ func postMessage(c echo.Context) error {
 				k := datastore.NewIncompleteKey(cx, "Attendance", nil)
 				e := new(AttendanceEntity)
 				e.Type = 2
-				e.Date = time.Now()
+				e.Date = now
 
 				if _, err := datastore.Put(cx, k, e); err != nil {
 					return c.JSON(http.StatusInternalServerError, "register error")
 				}
 
-				sendToSlack(c, slackPath, "退社したよ〜！")
+				if now.Hour() < 19 {
+					sendToSlack(c, slackPath, "あれ？今日は帰るの早いね！")
+				} else if now.Hour() >= 22 {
+					sendToSlack(c, slackPath, "今日は遅くまでよく頑張りました！")
+				} else if now.Hour() >= 19 {
+					sendToSlack(c, slackPath, "今日も１日お疲れ様！")
+				}
 			}
 			if _, err = bot.ReplyMessage(event.ReplyToken, resMessage).Do(); err != nil {
 				log.Errorf(cx, "send error: %v", err)
