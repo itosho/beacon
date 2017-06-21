@@ -86,7 +86,7 @@ func postMessage(c echo.Context) error {
 				todayCount, _ := t.Count(cx)
 
 				if recentCount > 9 {
-					sendToSlack(c, slackPath, "仕事中なのにここ1時間で"+strconv.Itoa(count)+"回もLINEを起動しているよ！")
+					sendToSlack(c, slackPath, "仕事中なのにここ1時間で"+strconv.Itoa(recentCount)+"回もLINEを起動しているよ！")
 				} else if now.Hour() > 10 && todayCount == 1 {
 					sendToSlack(c, slackPath, "もう"+strconv.Itoa(now.Hour())+"時だよ！来るの遅い！")
 				} else if now.Hour() <= 10 && todayCount == 1 {
