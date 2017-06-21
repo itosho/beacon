@@ -76,15 +76,20 @@ func postMessage(c echo.Context) error {
 				}
 
 				r := datastore.NewQuery("Attendance").
-					Filter("Date >=", now.Add(-59*time.Minute)).
+					Filter("Date >=", now.Add(-60*time.Minute)).
 					Filter("Date <=", now)
-				count, _ := r.Count(cx)
+				recentCount, _ := r.Count(cx)
 
-				if count > 9 {
+				t := datastore.NewQuery("Attendance").
+					Filter("Date >=", now.Add(-480*time.Minute)).
+					Filter("Date <=", now)
+				todayCount, _ := t.Count(cx)
+
+				if recentCount > 9 {
 					sendToSlack(c, slackPath, "仕事中なのにここ1時間で"+strconv.Itoa(count)+"回もLINEを起動しているよ！")
-				} else if now.Hour() > 10 && count == 1 {
+				} else if now.Hour() > 10 && todayCount == 1 {
 					sendToSlack(c, slackPath, "もう"+strconv.Itoa(now.Hour())+"時だよ！来るの遅い！")
-				} else if now.Hour() <= 10 && count == 1 {
+				} else if now.Hour() <= 10 && todayCount == 1 {
 					sendToSlack(c, slackPath, "おはよう！今日も１日頑張ろう！")
 				}
 
